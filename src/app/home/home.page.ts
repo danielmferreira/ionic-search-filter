@@ -1,46 +1,32 @@
-import { Component } from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { NavController } from 'ionic/angular';
-import { Data } from '../../providers/data';
-import 'rxjs/add/operator/debounceTime';
+import { Component, OnInit } from "@angular/core";
+import { DataService } from "../services/data.service";
+import { FormControl } from "@angular/forms";
+import { debounceTime } from "rxjs/operators";
 
 @Component({
-  selector: 'page-home',
-  templateUrl: 'home.html'
+  selector: "app-home",
+  templateUrl: "home.page.html",
+  styleUrls: ["home.page.scss"]
 })
-export class HomePage {
+export class HomePage implements OnInit {
+  public searchControl: FormControl;
+  public items: any;
 
-    searchTerm: string = '';
-    searchControl: FormControl;
-    items: any;
-    searching: any = false;
+  constructor(private dataService: DataService) {
+    this.searchControl = new FormControl();
+  }
 
-    constructor(public navCtrl: NavController, public dataService: Data) {
-        this.searchControl = new FormControl();
-    }
+  ngOnInit() {
+    this.setFilteredItems("");
 
-    ionViewDidLoad() {
+    this.searchControl.valueChanges
+      .pipe(debounceTime(700))
+      .subscribe(search => {
+        this.setFilteredItems(search);
+      });
+  }
 
-        this.setFilteredItems();
-
-        this.searchControl.valueChanges.debounceTime(700).subscribe(search => {
-
-            this.searchTerm =search;  
-            this.searching = false;
-            this.setFilteredItems();
-
-        });
-
-
-    }
-
-    onSearchInput(){
-        this.searching = true;
-    }
-
-    setFilteredItems() {
-
-        this.items = this.dataService.filterItems(this.searchTerm);
-
-    }
+  setFilteredItems(searchTerm) {
+    this.items = this.dataService.filterItems(searchTerm);
+  }
 }
